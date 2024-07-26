@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -17,6 +17,8 @@ class Athena(AutotoolsPackage):
 
     version("master", branch="master")
     version("4.2", sha256="6334848d7f1325aa44859418feac8ce223b56793ae8907103000af5b27f50e7e")
+
+    depends_on("c", type="build")  # generated
 
     # PHYSICS "packages":
     variant(

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -32,6 +32,8 @@ class RHdf5array(RPackage):
     version("1.6.0", commit="95f2f8d3648143abe9dc77c76340c5edf4114c82")
     version("1.4.8", commit="79ab96d123c8da8f8ead81f678fe714c0958ff45")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.4:", type=("build", "run"))
     depends_on("r-delayedarray@0.2.4:", type=("build", "run"))
     depends_on("r-delayedarray@0.3.18:", type=("build", "run"), when="@1.6.0:")
@@ -53,4 +55,4 @@ class RHdf5array(RPackage):
     depends_on("r-iranges", type=("build", "run"))
     depends_on("r-rhdf5lib", type=("build", "run"), when="@1.12.3:")
     depends_on("gmake", type="build")
-    depends_on("zlib")
+    depends_on("zlib-api")

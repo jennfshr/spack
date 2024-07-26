@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -23,6 +23,10 @@ class Coevp(MakefilePackage):
     git = "https://github.com/exmatex/CoEVP.git"
 
     version("develop", branch="master")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
 
     variant("mpi", default=True, description="Build with MPI Support")
     variant("silo", default=False, description="Build with silo Support")

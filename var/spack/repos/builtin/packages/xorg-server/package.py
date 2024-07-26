@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -13,9 +13,14 @@ class XorgServer(AutotoolsPackage, XorgPackage):
     homepage = "https://cgit.freedesktop.org/xorg/xserver"
     xorg_mirror_path = "xserver/xorg-server-1.18.99.901.tar.gz"
 
+    license("MIT")
+
     version(
         "1.18.99.901", sha256="c8425163b588de2ee7e5c8e65b0749f2710f55a7e02a8d1dc83b3630868ceb21"
     )
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     depends_on("pixman@0.27.2:")
     depends_on("font-util")

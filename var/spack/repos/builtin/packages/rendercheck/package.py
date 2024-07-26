@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Rendercheck(AutotoolsPackage, XorgPackage):
     xorg_mirror_path = "app/rendercheck-1.5.tar.gz"
 
     version("1.5", sha256="1553fef61c30f2524b597c3758cc8d3f8dc1f52eb8137417fa0667b0adc8a604")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libxrender")
     depends_on("libx11")

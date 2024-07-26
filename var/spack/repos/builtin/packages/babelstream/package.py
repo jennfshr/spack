@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,6 +25,8 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage):
     version("4.0", sha256="a9cd39277fb15d977d468435eb9b894f79f468233f0131509aa540ffda4f5953")
     version("main", branch="main")
     version("develop", branch="develop")
+
+    depends_on("cxx", type="build")  # generated
 
     maintainers("tomdeakin", "kaanolgu", "tom91136", "robj0nes")
 
@@ -157,7 +159,7 @@ class Babelstream(CMakePackage, CudaPackage, ROCmPackage):
         when="+thrust",
         msg="Which Thrust implementation to use, supported options include:\
          - CUDA (via https://github.com/NVIDIA/thrust)\
-         - ROCM (via https://github.com/ROCmSoftwarePlatform/rocThrust)",
+         - ROCM (via https://github.com/ROCm/rocThrust)",
     )
 
     # This applies to all

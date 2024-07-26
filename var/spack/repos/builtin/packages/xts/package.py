@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,8 @@ class Xts(AutotoolsPackage, XorgPackage):
     xorg_mirror_path = "test/xts-0.99.1.tar.gz"
 
     version("0.99.1", sha256="d04d987b9a9f8b3921dfe8de8577d0c2a0f21d2c4c3196948fc9805838a352e6")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("libx11", type="link")
     depends_on("libxext", type="link")

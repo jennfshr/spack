@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -25,6 +25,8 @@ class RCner(RPackage):
     version("1.14.0", commit="b8634d65c51728c815127e22b45eba7c9b9db897")
     version("1.12.1", commit="90d611f9cd19a73d0fe92ab03ef428519d64c017")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@3.2.2:", type=("build", "run"))
     depends_on("r@3.4:", type=("build", "run"), when="@1.14.0:")
     depends_on("r-biostrings@2.33.4:", type=("build", "run"))
@@ -47,4 +49,4 @@ class RCner(RPackage):
     depends_on("r-go-db@3.3.0:", type=("build", "run"))
     depends_on("r-r-utils@2.3.0:", type=("build", "run"))
     depends_on("r-keggrest@1.14.0:", type=("build", "run"))
-    depends_on("zlib")
+    depends_on("zlib-api")

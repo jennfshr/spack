@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,7 +14,9 @@ class Autodiff(CMakePackage):
     list_url = "https://github.com/autodiff/autodiff/tags"
     git = "https://github.com/autodiff/autodiff.git"
 
-    maintainers("wdconinc", "HadrienG2")
+    maintainers("wdconinc")
+
+    license("MIT")
 
     version("1.0.1", sha256="63f2c8aaf940fbb1d1e7098b1d6c08794da0194eec3faf773f3123dc7233838c")
     version("1.0.0", sha256="112c6f5740071786b3f212c96896abc2089a74bca16b57bb46ebf4cec79dca43")
@@ -29,12 +31,10 @@ class Autodiff(CMakePackage):
     version("0.6.4", sha256="cfe0bb7c0de10979caff9d9bfdad7e6267faea2b8d875027397486b47a7edd75")
     version("0.5.13", sha256="a73dc571bcaad6b44f74865fed51af375f5a877db44321b5568d94a4358b77a1")
 
-    variant(
-        "python", default="False", description="Enable the compilation of the python bindings."
-    )
-    variant(
-        "examples", default="False", description="Enable the compilation of the example files."
-    )
+    depends_on("cxx", type="build")  # generated
+
+    variant("python", default=False, description="Enable the compilation of the python bindings.")
+    variant("examples", default=False, description="Enable the compilation of the example files.")
 
     depends_on("cmake@3.0:", type="build")
     depends_on("cmake@3.22:", when="@0.6.8", type="build")

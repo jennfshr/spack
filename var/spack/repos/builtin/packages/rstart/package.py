@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -19,6 +19,8 @@ class Rstart(AutotoolsPackage, XorgPackage):
 
     version("1.0.6", sha256="28aa687437efeee70965a0878f9db79397cf691f4011268e16bc835627e23ec5")
     version("1.0.5", sha256="5271c0c2675b4ad09aace7edddfdd137af10fc754afa6260d8eb5d0bba7098c7")
+
+    depends_on("c", type="build")  # generated
 
     depends_on("xproto")
     depends_on("pkgconfig", type="build")

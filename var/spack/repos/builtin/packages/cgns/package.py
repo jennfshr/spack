@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -6,6 +6,8 @@
 import sys
 
 from spack.package import *
+
+is_windows = sys.platform == "win32"
 
 
 class Cgns(CMakePackage):
@@ -19,6 +21,8 @@ class Cgns(CMakePackage):
     maintainers("gsjaardema")
 
     parallel = False
+
+    license("Zlib")
 
     version("develop", branch="develop")
     version("master", branch="master")
@@ -34,6 +38,9 @@ class Cgns(CMakePackage):
     version("3.3.1", sha256="81093693b2e21a99c5640b82b267a495625b663d7b8125d5f1e9e7aaa1f8d469")
     version("3.3.0", sha256="8422c67994f8dc6a2f201523a14f6c7d7e16313bdd404c460c16079dbeafc662")
 
+    depends_on("c", type="build")  # generated
+    depends_on("fortran", type="build")  # generated
+
     variant("hdf5", default=True, description="Enable HDF5 interface")
     variant("fortran", default=False, description="Enable Fortran interface")
     variant("base_scope", default=False, description="Enable base scope")
@@ -46,6 +53,7 @@ class Cgns(CMakePackage):
     variant("legacy", default=False, description="Enable legacy options")
     variant("mem_debug", default=False, description="Enable memory debugging option")
     variant("tools", default=False, description="Enable CGNS tools")
+    variant("pic", default=False, description="Produce position-independent code")
 
     depends_on("cmake@3.12:", when="@4.3:", type="build")
     depends_on("cmake@3.8:", when="@4.2:", type="build")
@@ -62,9 +70,16 @@ class Cgns(CMakePackage):
     depends_on("libxmu", when="+tools")
     depends_on("libsm", when="+tools")
 
+    conflicts("~pic", when="+fortran", msg="+pic required when +fortran")
+
     # patch for error undefined reference to `matherr, see
     # https://bugs.gentoo.org/662210
     patch("no-matherr.patch", when="@:3.3.1 +tools")
+
+    # patch for gcc14 due to using internal tk type/function,
+    # copied from https://github.com/CGNS/CGNS/pull/757
+    # (adjusted an include from tk-private/generic/tkInt.h to tkInt.h)
+    patch("gcc14.patch", when="@:4.4.0 %gcc@14:")
 
     def cmake_args(self):
         spec = self.spec
@@ -83,19 +98,20 @@ class Cgns(CMakePackage):
                 self.define_from_variant("CGNS_ENABLE_BASE_SCOPE", "base_scope"),
                 self.define_from_variant("CGNS_ENABLE_LEGACY", "legacy"),
                 self.define_from_variant("CGNS_ENABLE_MEM_DEBUG", "mem_debug"),
+                self.define_from_variant("CMAKE_POSITION_INDEPENDENT_CODE", "pic"),
+                self.define_from_variant("CGNS_ENABLE_64BIT", "int64"),
             ]
         )
 
-        if "+mpi" in spec:
+        if "+mpi" in spec and not is_windows:
             options.extend(
                 [
                     "-DCMAKE_C_COMPILER=%s" % spec["mpi"].mpicc,
                     "-DCMAKE_CXX_COMPILER=%s" % spec["mpi"].mpicxx,
-                    "-DCMAKE_Fortran_COMPILER=%s" % spec["mpi"].mpifc,
                 ]
             )
-
-        options.append(self.define_from_variant("CGNS_ENABLE_64BIT", "int64"))
+            if "+fortran" in spec:
+                options.append(self.define("CMAKE_Fortran_COMPILER", spec["mpi"].mpifc))
 
         if "+hdf5" in spec:
             options.extend(

@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -14,6 +14,7 @@ class BlastPlus(AutotoolsPackage):
 
     maintainers("weijianwen")
 
+    version("2.14.1", sha256="712c2dbdf0fb13cc1c2d4f4ef5dd1ce4b06c3b57e96dfea8f23e6e99f5b1650e")
     version("2.13.0", sha256="89553714d133daf28c477f83d333794b3c62e4148408c072a1b4620e5ec4feb2")
     version("2.12.0", sha256="fda3c9c9d488cad6c1880a98a236d842bcf3610e3e702af61f7a48cf0a714b88")
     version("2.11.0", sha256="d88e1858ae7ce553545a795a2120e657a799a6d334f2a07ef0330cc3e74e1954")
@@ -22,6 +23,9 @@ class BlastPlus(AutotoolsPackage):
     version("2.7.1", sha256="10a78d3007413a6d4c983d2acbf03ef84b622b82bd9a59c6bd9fbdde9d0298ca")
     version("2.6.0", sha256="0510e1d607d0fb4389eca50d434d5a0be787423b6850b3a4f315abc2ef19c996")
     version("2.2.30", sha256="26f72d51c81b9497f33b7274109565c36692572faef4d72377f79b7e59910e40")
+
+    depends_on("c", type="build")  # generated
+    depends_on("cxx", type="build")  # generated
 
     # homebrew sez: Fixed upstream in future version > 2.6
     # But this bug sez that it will be fixed in 2.6
@@ -69,7 +73,7 @@ class BlastPlus(AutotoolsPackage):
     # depends_on('hdf5', when='+hdf5')
     depends_on("gnutls", when="+gnutls")
     depends_on("openssl", when="+openssl")
-    depends_on("zlib", when="+zlib")
+    depends_on("zlib-api", when="+zlib")
     depends_on("bzip2", when="+bzip2")
     depends_on("lzo", when="+lzo")
     depends_on("pcre", when="+pcre")
@@ -121,7 +125,7 @@ class BlastPlus(AutotoolsPackage):
         #     config_args.append('--without-hdf5')
 
         if "+zlib" in spec:
-            config_args.append("--with-z={0}".format(self.spec["zlib"].prefix))
+            config_args.append("--with-z={0}".format(self.spec["zlib-api"].prefix))
         else:
             config_args.append("--without-z")
 

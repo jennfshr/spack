@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -26,9 +26,11 @@ class RSnpstats(RPackage):
     version("1.28.0", commit="8df9f4188f720dfbb4f4f4ec255cd2e22f3f4426")
     version("1.26.0", commit="7c9b3304073e0556d694a8531882b349822fdda8")
 
+    depends_on("c", type="build")  # generated
+
     depends_on("r@2.10.0:", type=("build", "run"))
     depends_on("r-survival", type=("build", "run"))
     depends_on("r-matrix", type=("build", "run"))
     depends_on("r-biocgenerics", type=("build", "run"))
     depends_on("r-zlibbioc", type=("build", "run"))
-    depends_on("zlib")
+    depends_on("zlib-api")

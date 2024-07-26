@@ -1,4 +1,4 @@
-# Copyright 2013-2023 Lawrence Livermore National Security, LLC and other
+# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
 # Spack Project Developers. See the top-level COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
@@ -15,15 +15,16 @@ import sys
 import pytest
 
 from llnl.util.filesystem import getuid, mkdirp, partition_path, touch, working_dir
+from llnl.util.symlink import readlink
 
+import spack.error
 import spack.paths
 import spack.stage
 import spack.util.executable
 import spack.util.url as url_util
 from spack.resource import Resource
-from spack.stage import DIYStage, ResourceStage, Stage, StageComposite
+from spack.stage import DevelopStage, ResourceStage, Stage, StageComposite
 from spack.util.path import canonicalize_path
-from spack.util.web import FetchError
 
 # The following values are used for common fetch and stage mocking fixtures:
 _archive_base = "test-files"
@@ -145,9 +146,8 @@ def check_destroy(stage, stage_name):
     assert not os.path.exists(stage_path)
 
     # tmp stage needs to remove tmp dir too.
-    if not stage.managed_by_spack:
-        target = os.path.realpath(stage_path)
-        assert not os.path.exists(target)
+    target = os.path.realpath(stage_path)
+    assert not os.path.exists(target)
 
 
 def check_setup(stage, stage_name, archive):
@@ -444,12 +444,9 @@ class TestStage:
 
     @pytest.mark.disable_clean_stage_check
     def test_composite_stage_with_expand_resource(self, composite_stage_with_expanding_resource):
-        (
-            composite_stage,
-            root_stage,
-            resource_stage,
-            mock_resource,
-        ) = composite_stage_with_expanding_resource
+        (composite_stage, root_stage, resource_stage, mock_resource) = (
+            composite_stage_with_expanding_resource
+        )
 
         composite_stage.create()
         composite_stage.fetch()
@@ -474,12 +471,9 @@ class TestStage:
         directory.
         """
 
-        (
-            composite_stage,
-            root_stage,
-            resource_stage,
-            mock_resource,
-        ) = composite_stage_with_expanding_resource
+        (composite_stage, root_stage, resource_stage, mock_resource) = (
+            composite_stage_with_expanding_resource
+        )
 
         resource_stage.resource.placement = None
 
@@ -522,7 +516,7 @@ class TestStage:
         with stage:
             try:
                 stage.fetch(mirror_only=True)
-            except FetchError:
+            except spack.error.FetchError:
                 pass
         check_destroy(stage, self.stage_name)
 
@@ -537,7 +531,7 @@ class TestStage:
         stage = Stage(failing_fetch_strategy, name=self.stage_name, search_fn=search_fn)
 
         with stage:
-            with pytest.raises(FetchError, match=expected):
+            with pytest.raises(spack.error.FetchError, match=expected):
                 stage.fetch(mirror_only=False, err_msg=err_msg)
 
         check_destroy(stage, self.stage_name)
@@ -659,7 +653,7 @@ class TestStage:
         assert source_path.endswith(spack.stage._source_path_subdir)
         assert not os.path.exists(source_path)
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
+    @pytest.mark.not_on_windows("Windows file permission erroring is not yet supported")
     @pytest.mark.skipif(getuid() == 0, reason="user is root")
     def test_first_accessible_path(self, tmpdir):
         """Test _first_accessible_path names."""
@@ -691,7 +685,6 @@ class TestStage:
         # Cleanup
         shutil.rmtree(str(name))
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
     def test_create_stage_root(self, tmpdir, no_path_access):
         """Test create_stage_root permissions."""
         test_dir = tmpdir.join("path")
@@ -755,7 +748,7 @@ class TestStage:
 
         assert spack.stage._resolve_paths(paths) == res_paths
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
+    @pytest.mark.not_on_windows("Windows file permission erroring is not yet supported")
     @pytest.mark.skipif(getuid() == 0, reason="user is root")
     def test_get_stage_root_bad_path(self, clear_stage_root):
         """Ensure an invalid stage path root raises a StageError."""
@@ -807,64 +800,76 @@ class TestStage:
         with Stage("file:///does-not-exist", path=testpath) as stage:
             assert stage.path == testpath
 
-    def test_diystage_path_none(self):
-        """Ensure DIYStage for path=None behaves as expected."""
-        with pytest.raises(ValueError):
-            DIYStage(None)
 
-    def test_diystage_path_invalid(self):
-        """Ensure DIYStage for an invalid path behaves as expected."""
-        with pytest.raises(spack.stage.StagePathError):
-            DIYStage("/path/does/not/exist")
-
-    def test_diystage_path_valid(self, tmpdir):
-        """Ensure DIYStage for a valid path behaves as expected."""
-        path = str(tmpdir)
-        stage = DIYStage(path)
-        assert stage.path == path
-        assert stage.source_path == path
-
-        # Order doesn't really matter for DIYStage since they are
-        # basically NOOPs; however, call each since they are part
-        # of the normal stage usage and to ensure full test coverage.
-        stage.create()  # Only sets the flag value
-        assert stage.created
-
-        stage.cache_local()  # Only outputs a message
-        stage.fetch()  # Only outputs a message
-        stage.check()  # Only outputs a message
-        stage.expand_archive()  # Only outputs a message
-
-        assert stage.expanded  # The path/source_path does exist
-
-        with pytest.raises(spack.stage.RestageError):
-            stage.restage()
-
-        stage.destroy()  # A no-op
-        assert stage.path == path  # Ensure can still access attributes
-        assert os.path.exists(stage.source_path)  # Ensure path still exists
-
-    def test_diystage_preserve_file(self, tmpdir):
-        """Ensure DIYStage preserves an existing file."""
-        # Write a file to the temporary directory
-        fn = tmpdir.join(_readme_fn)
-        fn.write(_readme_contents)
-
-        # Instantiate the DIYStage and ensure the above file is unchanged.
-        path = str(tmpdir)
-        stage = DIYStage(path)
-        assert os.path.isdir(path)
-        assert os.path.isfile(str(fn))
-
-        stage.create()  # Only sets the flag value
-
-        readmefn = str(fn)
-        assert os.path.isfile(readmefn)
-        with open(readmefn) as _file:
-            _file.read() == _readme_contents
+def _create_files_from_tree(base, tree):
+    for name, content in tree.items():
+        sub_base = os.path.join(base, name)
+        if isinstance(content, dict):
+            os.mkdir(sub_base)
+            _create_files_from_tree(sub_base, content)
+        else:
+            assert (content is None) or (isinstance(content, str))
+            with open(sub_base, "w") as f:
+                if content:
+                    f.write(content)
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
+def _create_tree_from_dir_recursive(path):
+    if os.path.islink(path):
+        return readlink(path)
+    elif os.path.isdir(path):
+        tree = {}
+        for name in os.listdir(path):
+            sub_path = os.path.join(path, name)
+            tree[name] = _create_tree_from_dir_recursive(sub_path)
+        return tree
+    else:
+        with open(path, "r") as f:
+            content = f.read() or None
+        return content
+
+
+@pytest.fixture
+def develop_path(tmpdir):
+    dir_structure = {"a1": {"b1": None, "b2": "b1content"}, "a2": None}
+    srcdir = str(tmpdir.join("test-src"))
+    os.mkdir(srcdir)
+    _create_files_from_tree(srcdir, dir_structure)
+    yield dir_structure, srcdir
+
+
+class TestDevelopStage:
+    def test_sanity_check_develop_path(self, develop_path):
+        _, srcdir = develop_path
+        with open(os.path.join(srcdir, "a1", "b2")) as f:
+            assert f.read() == "b1content"
+
+        assert os.path.exists(os.path.join(srcdir, "a2"))
+
+    def test_develop_stage(self, develop_path, tmp_build_stage_dir):
+        """Check that (a) develop stages update the given
+        `dev_path` with a symlink that points to the stage dir and
+        (b) that destroying the stage does not destroy `dev_path`
+        """
+        devtree, srcdir = develop_path
+        stage = DevelopStage("test-stage", srcdir, reference_link="link-to-stage")
+        assert not os.path.exists(stage.reference_link)
+        stage.create()
+        assert os.path.exists(stage.reference_link)
+        srctree1 = _create_tree_from_dir_recursive(stage.source_path)
+        assert os.path.samefile(srctree1["link-to-stage"], stage.path)
+        del srctree1["link-to-stage"]
+        assert srctree1 == devtree
+
+        stage.destroy()
+        assert not os.path.exists(stage.reference_link)
+        # Make sure destroying the stage doesn't change anything
+        # about the path
+        assert not os.path.exists(stage.path)
+        srctree2 = _create_tree_from_dir_recursive(srcdir)
+        assert srctree2 == devtree
+
+
 def test_stage_create_replace_path(tmp_build_stage_dir):
     """Ensure stage creation replaces a non-directory path."""
     _, test_stage_path = tmp_build_stage_dir
@@ -872,16 +877,15 @@ def test_stage_create_replace_path(tmp_build_stage_dir):
 
     nondir = os.path.join(test_stage_path, "afile")
     touch(nondir)
-    path = str(nondir)
+    path = url_util.path_to_file_url(str(nondir))
 
-    stage = Stage(path, name="")
+    stage = Stage(path, name="afile")
     stage.create()
 
     # Ensure the stage path is "converted" to a directory
-    assert os.path.isdir(stage.path)
+    assert os.path.isdir(nondir)
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Not supported on Windows (yet)")
 def test_cannot_access(capsys):
     """Ensure can_access dies with the expected error."""
     with pytest.raises(SystemExit):
@@ -890,3 +894,24 @@ def test_cannot_access(capsys):
 
     captured = capsys.readouterr()
     assert "Insufficient permissions" in str(captured)
+
+
+def test_override_keep_in_composite_stage():
+    stage_1 = Stage("file:///does-not-exist", keep=True)
+    stage_2 = Stage("file:///does-not-exist", keep=False)
+    stage_3 = Stage("file:///does-not-exist", keep=True)
+    stages = spack.stage.StageComposite.from_iterable((stage_1, stage_2, stage_3))
+
+    # The getter for the composite stage just returns the value of the first stage
+    # its just there so we have a setter too.
+    assert stages.keep
+    assert stage_1.keep
+    assert not stage_2.keep
+    assert stage_3.keep
+
+    # This should override all stages
+    stages.keep = False
+    assert not stages.keep
+    assert not stage_1.keep
+    assert not stage_2.keep
+    assert not stage_3.keep
