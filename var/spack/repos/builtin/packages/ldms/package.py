@@ -35,8 +35,7 @@ class Ldms(AutotoolsPackage):
     
     # RDMA 
     variant("rdma", default=True, description="enable rdma module")
-    depends_on("libibverbs", when="+rdma")
-    depends_on("librdmacm", when="+rdma")
+    depends_on("rdma-core", when="+rdma")
     variant("nola", default=True, description="enable nola module")
     variant("fabric", default=False, description="enable fabric module")
     depends_on("libfabric", when="+fabric")
@@ -67,17 +66,17 @@ class Ldms(AutotoolsPackage):
     variant("csv", default=True, description="enable csv module")
     variant("rabbitkw", default=False, description="enable rabbitkw module")
     variant("rabbitv3", default=False, description="enable rabbitv3 module")
-    variant("amqp", default=False, description="enable amqp module")
+#    variant("amqp", default=False, description="enable amqp module")
     depends_on("rabbitmq", when="+rabbitkw")
     depends_on("rabbitmq", when="+rabbitv3")
-    depends_on("amqp", when="+rabbitkw")
-    depends_on("amqp", when="+rabbitv3")
+#    depends_on("amqp", when="+rabbitkw")
+#    depends_on("amqp", when="+rabbitv3")
     variant("tutorial-store", default=False, description="enable tutorial-store module")
     variant("timescale-store", default=False, description="enable timescaledb store plugin")
     variant("gpcdlocal", default=False, description="enable gpcdlocal module (Required access to gpcd-support repository)")
     variant("store-avro-kafka", default=False, description="require store-avro-kafka[default=check]")
     depends_on("librdkafka", when="+store-avro-kafka")
-    depends_on("libavro", when="+store-avro-kafka")
+    depends_on("py-avro", when="+store-avro-kafka")
     variant("sampler", default=True, description="enable sampler module")
     variant("kgnilnd", default=False, description="enable kgnilnd module")
     variant("lustre", default=True, description="enable lustre module")
@@ -96,7 +95,7 @@ class Ldms(AutotoolsPackage):
     variant("blob_stream", default=True, description="enable blob_stream module")
     variant("perfevent", default=False, description="enable perfevent module")
     variant("mpi_sampler", default=False, description="enable mpi_sampler module")
-    depends_on("mpi", when="+mpi")
+    depends_on("mpi", when="+mpi_sampler")
 
     variant("mpi_noprofile", default=False, description="enable mpi_noprofile module")
     variant("procinterrupts", default=True, description="enable procinterrupts module")
@@ -120,7 +119,7 @@ class Ldms(AutotoolsPackage):
     #variant("aries_linkstatus", default=False, decription="enable aries_linkstatus module")
     #   >>>> Requires gpcdr to be set up with status metrics
     variant("atasmart", default=False, description="enable atasmart module")
-    depends_on("libatasmart", when="+atamart")
+    depends_on("libatasmart", when="+atasmart")
     variant("generic_sampler", default=True, description="enable generic_sampler module")
     variant("switchx", default=False, description="enable switchx module")
 
@@ -147,9 +146,9 @@ class Ldms(AutotoolsPackage):
 
     variant("influx", default=False, description="enable influx module")
     depends_on("curl", when="+influx")
-    variant("papi", default=False, description="require components that depend upon libpapi (and libpfm) [default=check]")
+    variant("papi", default=False, description="require components that depend upon libpapi (and libpfm4) [default=check]")
     depends_on("papi", when="+papi")
-    depends_on("libpfm", when="+papi")
+    depends_on("libpfm4", when="+papi")
 
     variant("infiniband", default=False, description="require components that depend upon libibmad and libibumad [default=check]")
     #depends_on("libibmad", when="+infiniband")
@@ -184,9 +183,9 @@ class Ldms(AutotoolsPackage):
     depends_on("zfs", when="+zfs")
 
     variant("pic", default=True, description="try to use only PIC/non-PIC objects [default=use both]")
-    conflicts("^cxi", when="+slingshot", msg="Slingshot Sampler requires cxi")
+    #conflicts("^cxi", when="+slingshot", msg="Slingshot Sampler requires cxi")
     variant("geopm", default=False, description="build GEOPM telemetry sampler")
-    depends_on("geopm", when="+geopm")
+    depends_on("geopm-service", when="+geopm")
 
     variant("daos", default=False, description="build DAOS telemetry sampler")
     depends_on("daos", when="+daos")
@@ -194,9 +193,9 @@ class Ldms(AutotoolsPackage):
     depends_on("slurm", when="+slurm")
 
     variant("dcgm", default=False, description="support Nvidia DCGM telemetry sampler")
-    depends_on("dcgm", when="+dcgm")
-    variant("cxi", default=False, description="support for cassini network interface")
-    depends_on("cxi", when="+cxi")
+    #depends_on("dcgm", when="+dcgm")
+    #variant("cxi", default=False, description="support for cassini network interface")
+    #depends_on("cxi", when="+cxi")
     variant("kafka", default=False, description="supply kafka path")
     ## unimplemented, not sure how to do this in Spack
     #--with-LDMSDPORT[=NNN]  self.specify LDMSD runtime default port [default=411]
@@ -219,8 +218,8 @@ class Ldms(AutotoolsPackage):
         options.extend(self.enable_or_disable("shared"))
         options.extend(self.enable_or_disable("static"))
         if "+rdma" in self.spec:
-            options.append("--with-libibverbs=%s" % self.spec["libibverbs"].prefix)
-            options.append("--with-librdmacm=%s" % self.spec["librdmacm"].prefix)
+            options.append("--with-libibverbs=%s" % self.spec["rdma-core"].prefix)
+            options.append("--with-librdmacm=%s" % self.spec["rdma-core"].prefix)
 
         if "+ovis_auth" in self.spec:
             depends_on("openssl")
@@ -242,8 +241,8 @@ class Ldms(AutotoolsPackage):
         if "+rabbitkw" or "+rabbitv3" in self.spec:
             options.append("--with-rabbitmq=%s" % self.spec["rabbitmq"].prefix)
             conflict("^amqp", msg="RabbitKW or Rabbitv3 require --with-amqp")
-        if "+amqp" in self.spec:
-            options.append("--with-amqp=%s" % self.spec["amqp"].prefix)
+        #if "+amqp" in self.spec:
+        #    options.append("--with-amqp=%s" % self.spec["amqp"].prefix)
         if "+timescale-store" in self.spec:
             depends_on("pq")
             options.append("--with-libpq-prefix=%s" % self.spec["pq"].prefix)
@@ -255,7 +254,7 @@ class Ldms(AutotoolsPackage):
             options.append("MPICXX=%s" % self.spec["mpi"].mpicxx)
 
         if "+atasmart" in self.spec:
-            options.append("--with-atasmart=%s" % self.spec["libatamart"].prefix)
+            options.append("--with-atasmart=%s" % self.spec["libatasmart"].prefix)
 
         ## ovis-SOS isn't a supported package in Spack, and the sos package isn't what we want
         ## TODO: write an ovis-sos package in Spack
@@ -270,7 +269,7 @@ class Ldms(AutotoolsPackage):
             options.append("--with-curl=%s" % self.spec["curl"].prefix)
         if "+papi" in self.spec:
             options.append("--with-libpapi-prefix=%s" % self.spec["papi"].prefix)
-            options.append("--with-libpfm-prefix=%s" % self.spec["libpfm"].prefix)
+            options.append("--with-libpfm4-prefix=%s" % self.spec["libpfm4"].prefix)
         if "+tx2mon" in self.spec:
             conflicts("target=x86:", msg="Only available for Aarch64")
             conflicts("target=ppc64:", msg="Only available for Aarch64")
@@ -289,9 +288,9 @@ class Ldms(AutotoolsPackage):
         if self.specsatisfies("@4.4.2:"):
             variant("slingshot", default=False, description="require the slinghost related plugins [default=check]")
             variant("slingshot_switch", default=False, description="require the slinghost on-switch plugins [default=check]")
-            depends_on("cxi", when="+slingshot")
-            if "+slingshot" in self.spec:
-                options.append("--with-libcxi=%s" % self.spec["libcxi"].prefix)
+            #depends_on("cxi", when="+slingshot")
+            #if "+slingshot" in self.spec:
+            #    options.append("--with-libcxi=%s" % self.spec["libcxi"].prefix)
         
         if "+zfs" in self.spec:
             options.append("--with-zfs=%s" % self.spec["zfs"].prefix)
@@ -310,15 +309,15 @@ class Ldms(AutotoolsPackage):
             options.append("--with-aix-soname=both")
         
         if "+geopm" in self.spec:
-            options.append("--with-geopm=%s" % self.spec["geopm"].prefix)
+            options.append("--with-geopm=%s" % self.spec["geopm-service"].prefix)
         if "+daos" in self.spec:
             options.append("--with-daos=%s" % self.spec["daos"].prefix)
         if "+slurm" in self.spec:
             options.append("--with-slurm=%s" % self.spec["slurm"].prefix)
-        if "+dcgm" in self.spec:
-            options.append("--with-dcgm=%s" % self.spec["dcgm"].prefix)
-        if "+cxi" in self.spec:
-            options.append("--with-cxi-prefix=%s" % self.spec["cxi"].prefix)
+        #if "+dcgm" in self.spec:
+        #    options.append("--with-dcgm=%s" % self.spec["dcgm"].prefix)
+        #if "+cxi" in self.spec:
+        #    options.append("--with-cxi-prefix=%s" % self.spec["cxi"].prefix)
         ## gpcdlocal isn't in spack
         #variant("+gpcdlocal", default=False, description="self.specify gpcdlocal path [default=in build tree]")
         if "+kafka" in self.spec:
