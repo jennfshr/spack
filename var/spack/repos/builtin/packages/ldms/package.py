@@ -14,8 +14,9 @@ from spack.util.environment import is_system_path
 
 class Ldms(AutotoolsPackage):
 
-    """LDMS Lightweight Distributed Metric Service is
-    a scalable monitoring system designed to run on HPC systems.
+    """LDMS is a low-overhead, low-latency framework for collecting, 
+    transfering, and storing metric data on a large distributed computer system.
+    https://ovis-hpc.readthedocs.io/en/latest/
     """
     homepage = "http://github.com/OVIS-LDMS/ovis.git"
     url = "https://github.com/ovis-hpc/ovis/releases/download/v4.4.3/ovis-ldms-4.4.3.tar.gz"
