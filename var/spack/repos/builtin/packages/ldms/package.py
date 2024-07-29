@@ -53,7 +53,7 @@ class Ldms(AutotoolsPackage):
     variant("gpcdlocal", default=False, description="enable gpcdlocal module (Required access to gpcd-support repository)")
     variant("gpumetrics", default=False, description="enable gpumetrics module for Intel OneAPI")
     variant("jobid", default=False, description="enable jobid module")
-    variant("kafka", default="check", description"Specify kafka path [default=check]", values=("check", "yes", "no", "PATH"), multi=False)
+    variant("kafka", default="check", description="Specify kafka path [default=check]", values=("check", "yes", "no", "PATH"), multi=False)
     variant("kgnilnd", default=False, description="enable kgnilnd module")
     variant("ldms-test", default=False, description="enable ldms-test module")
     variant("lnet_stats", default=True, description="enable lnet_stats module")
