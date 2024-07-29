@@ -76,7 +76,7 @@ class Ldms(AutotoolsPackage):
     #depends_on("rabbitmq", when="+rabbitv3")
     variant("rdc", default=False, description="include components that depend on AMD rdc tooling for GPUS")
     depends_on("rdc", when="+rdc")
-    variant("rdma", default=True, description="enable rdma module")
+    variant("rdma", default=False, description="enable rdma module")
     depends_on("rdma-core", when="+rdma")
     variant("rpath", default=True, description="enable rpathing")
     variant("sampler", default=True, description="enable sampler module")
@@ -174,7 +174,7 @@ class Ldms(AutotoolsPackage):
     variant("spank_subscriber", default=True, description="enable spank_subscriber module")
     variant("python", default=True, description="enable LDMS python API")
     depends_on("python@3.6:", when="+python")
-    depends_on("py-cython", when="+python")
+    depends_on("py-cython@:0.29.36", when="+python")
     variant("ldms-python", default=True, description="enable LDMS python API (deprecated)")
     variant("libgenders", default=False, description="enable libgenders module: requires C++,boost")
     depends_on("boost", when="+libgenders")
@@ -726,9 +726,10 @@ class Ldms(AutotoolsPackage):
         else:
             options.append("--disable-rabbitv3")
 
-        if "+rabbitkw" or "+rabbitv3" in spec:
-            options.append("--with-rabbitmq=%s" % spec["rabbitmq"].prefix)
-            conflict("^amqp", msg="RabbitKW or Rabbitv3 require --with-amqp")
+        ## commenting out for now
+        #if "+rabbitkw" or "+rabbitv3" in spec:
+        #    options.append("--with-rabbitmq=%s" % spec["rabbitmq"].prefix)
+        #    conflict("^amqp", msg="RabbitKW or Rabbitv3 require --with-amqp")
 
         if "+rdc" in spec:
             options.append("--with-librdc_bootstrap-prefix=%s" % spec["rdc"].prefix)
@@ -940,6 +941,11 @@ class Ldms(AutotoolsPackage):
 
         return options
 
+    def flag_handler(self, name, flags):
+        if name == "cflags":
+            if self.spec.satisfies("+rdma") or self.spec.satisfies("+infiniband"):
+                flags.append("-I%s/infiniband" % self.spec['rdma-core'].prefix)
+        return (flags, None, None)
 #    def setup_build_environment(self, spack_env):
 #        spack_env.set("CFLAGS", " ".join(self.cflags))
 
