@@ -102,6 +102,7 @@ class Ldms(AutotoolsPackage):
     variant("mpi_sampler", default=False, description="enable mpi_sampler module")
     depends_on("mpi", when="+mpi_sampler")
     variant("mpi_noprofile", default=False, description="enable mpi_noprofile module")
+    depends_on("mpi", when="+mpi_noprofile")
     variant("procinterrupts", default=True, description="enable procinterrupts module")
     variant("procnet", default=True, description="enable procnet module")
     variant("procnetdev", default=True, description="enable procnetdev module")
@@ -111,12 +112,16 @@ class Ldms(AutotoolsPackage):
     variant("llnl-edac", default=True, description="enable llnl-edac module")
     variant("fptrans", default=False, description="enable fptrans module")
     variant("tsampler", default=True, description="enable tsampler module")
-    conflicts("^tsampler", msg="Cray Power Sampler will not build with --disable-tsampler")
     variant("cray_power_sampler", default=True, description="enable cray_power_sampler module")
+    with when ("+cray_power_sampler"):
+        conflicts("^tsampler", msg="Cray Power Sampler will not build with --disable-tsampler")
+    
     variant("loadavg", default=True, description="enable loadavg module")
     variant("vmstat", default=True, description="enable vmstat module")
     variant("procdiskstats", default=True, description="enable procdiskstats module")
     variant("cray_system_sampler", default=False, description="enable cray_system_sampler module")
+
+    ## TODO: understand the "spaceless names" limitation with cray sampling
     variant("spaceless_names", default=True, description="enable spaceless_names module")
     #variant("aries-mmr", default=False, description"enable aries-mmr module")
     #   >>>> Requires   variant("gpcd or --with-aries-libgpcd=libdir,incdir
@@ -151,12 +156,14 @@ class Ldms(AutotoolsPackage):
     depends_on("papi", when="+papi")
     depends_on("libpfm4", when="+papi")
     variant("infiniband", default=False, description="require components that depend upon libibmad and libibumad [default=check]")
+    ## TODO: determine whether this is satisfied by "rdma-core" or other package
     #depends_on("libibmad", when="+infiniband")
     depends_on("libibumad", when="+infiniband")
     variant("ibnet", default=False, description="require the ibnet plugin [default=check]")
     variant("opa2", default=False, description="require the opa2 plugin [default=check]")
     depends_on("rdma-core", when="+opa2")
     variant("tx2mon", default=False, description="require components that depend upon tx2mon header)")
+    ## TODO Figure out these cray-nvidia requirements
     variant("cray-nvidia", default=False, description="enable cray-nvidia module")
     variant("cray-nvidia-inc", default=False, description="enable cray-nvidia-inc module")
     variant("cray-hss-devel", default=False, description="enable cray-hss-devel module")
@@ -935,7 +942,7 @@ class Ldms(AutotoolsPackage):
 #    def setup_build_environment(self, spack_env):
 #        spack_env.set("CFLAGS", " ".join(self.cflags))
 
-    def setup_
+#    def setup_run_environment(self, env):
 
     @run_after("install")
     def install_pkgconfig(self):
