@@ -811,18 +811,18 @@ class Ldms(AutotoolsPackage):
             options.append("--disable-tx2mon")
             options.append("--without-tx2mon")
 
+        ## TODO NEED SOS SPACK PACKAGE
+        ## options.append("--with-sos=%s" % spec.["sos"].prefix)
         if "+variorum" in spec:
             options.append("--enable-variorum")
             options.append("--enable-sos")
-            options.append("--with-libvariorum-prefix=%s" % spec.["variorum"].prefix)
-            ## TODO NEED SOS SPACK PACKAGE
-            ## options.append("--with-sos=%s" % spec.["sos"].prefix)
+            options.append("--with-libvariorum-prefix=%s" % spec["variorum"].prefix)
         else:
             options.append("--disable-variorum")
             options.append("--without-libvariorum-prefix")
 
-            #if "+slingshot" in spec:
-            #    options.append("--with-libcxi=%s" % spec["libcxi"].prefix)
+        #if "+slingshot" in spec:
+        #    options.append("--with-libcxi=%s" % spec["libcxi"].prefix)
 
         if "+spaceless_names" in spec:
             options.append("--enable-spaceless_names")
