@@ -969,7 +969,7 @@ class Ldms(AutotoolsPackage):
             f.write("OVIS: {0}\n".format(self.spec.name))
             f.write("Version: {0}\n".format(self.spec.version))
             f.write("Cflags: -I${includedir}\n")
-            f.write("Libs: -L${libdir} -llmdb\n")
+            f.write("Libs: -L${libdir} -lldms\n")
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         env.set("OVIS", self.prefix)
