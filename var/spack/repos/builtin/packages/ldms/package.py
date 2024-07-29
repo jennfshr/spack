@@ -12,10 +12,10 @@ import spack.build_environment
 from spack.package import *
 from spack.util.environment import is_system_path
 
-class Ldms(AutotoolsPackage):
 
-    """LDMS is a low-overhead, low-latency framework for collecting, 
-    transfering, and storing metric data on a large distributed computer system.
+class Ldms(AutotoolsPackage):
+    """LDMS is a low-overhead, low-latency framework for collecting,
+     transfering, and storing metric data on a large distributed computer system.
     https://ovis-hpc.readthedocs.io/en/latest/
     """
     homepage = "http://github.com/OVIS-LDMS/ovis.git"
@@ -26,19 +26,20 @@ class Ldms(AutotoolsPackage):
     version("4.4.2", sha256="5d0a5fd1184beadbcba8cfb3070ac1e6efd6cc4795aed65873887b75bfc250b5")
     version("4.3.11", sha256="ef24aae04c08b32a414340e2975a98bd468eb85fdfa76640ba94f73a8945c14a")
 
-    executables = [ 'ldmsd' ]
-    provides = [ 'ldms', 'ovis' ]
+    executables = ['ldmsd']
+    provides = ['ldms', 'ovis']
 
     variant("array_example", default=False, description="enable array_example module")
-    variant("aix-soname", default="aix", description="provide on AIX", values=("aix", "svr4", "both"), multi=False)
-    #variant("amqp", default=False, description="enable amqp module")
-    #depends_on("amqp", when="+rabbitkw")
-    #depends_on("amqp", when="+rabbitv3")
+    variant("aix-soname", default="aix", 
+            description="provide on AIX", values=("aix", "svr4", "both"), multi=False)
+    # variant("amqp", default=False, description="enable amqp module")
+    # depends_on("amqp", when="+rabbitkw")
+    # depends_on("amqp", when="+rabbitv3")
     variant("clock", default=True, description="enable clock module")
     variant("coretemp", default=True, description="enable coretemp module")
     variant("csv", default=True, description="enable csv module")
-    #variant("cxi", default=False, description="support for cassini network interface")
-    #depends_on("cxi", when="+cxi")
+    # variant("cxi", default=False, description="support for cassini network interface")
+    # depends_on("cxi", when="+cxi")
     variant("developer", default=False, description="enable developer module")
     variant("doc", default=False, description="enable doc module")
     variant("doc-html", default=False, description="enable doc-html module")
@@ -50,7 +51,8 @@ class Ldms(AutotoolsPackage):
     depends_on("libfabric", when="+fabric")
     variant("filesingle", default=False, description="enable filesingle module")
     variant("flatfile", default=True, description="enable flatfile module")
-    variant("gpcdlocal", default=False, description="enable gpcdlocal module (Required access to gpcd-support repository)")
+    variant("gpcdlocal", default=False,
+            description="enable gpcdlocal module (Required access to gpcd-support repository)")
     variant("gpumetrics", default=False, description="enable gpumetrics module for Intel OneAPI")
     variant("jobid", default=False, description="enable jobid module")
     variant("kafka", default="check", description="Specify kafka path [default=check]", values=("check", "yes", "no", "PATH"), multi=False)
@@ -70,11 +72,12 @@ class Ldms(AutotoolsPackage):
     variant("ovis_event_test", default=False, description="enable ovis_event_test module")
     variant("perf", default=True, description="enable perf module")
     depends_on("pkg-config")
-    #variant("rabbitkw", default=False, description="enable rabbitkw module")
-    #variant("rabbitv3", default=False, description="enable rabbitv3 module")
-    #depends_on("rabbitmq", when="+rabbitkw")
-    #depends_on("rabbitmq", when="+rabbitv3")
-    variant("rdc", default=False, description="include components that depend on AMD rdc tooling for GPUS")
+    # variant("rabbitkw", default=False, description="enable rabbitkw module")
+    # variant("rabbitv3", default=False, description="enable rabbitv3 module")
+    # depends_on("rabbitmq", when="+rabbitkw")
+    # depends_on("rabbitmq", when="+rabbitv3")
+    variant("rdc", default=False,
+            description="include components that depend on AMD rdc tooling for GPUS")
     depends_on("rdc", when="+rdc")
     variant("rdma", default=False, description="enable rdma module")
     depends_on("rdma-core", when="+rdma")
@@ -85,7 +88,8 @@ class Ldms(AutotoolsPackage):
     variant("sock", default=True, description="enable sock module")
     variant("ssl", default=False, description="enable ssl module")
     variant("store", default=True, description="enable store module")
-    variant("store-avro-kafka", default=False, description="require store-avro-kafka[default=check]")
+    variant("store-avro-kafka", default=False,
+            description="require store-avro-kafka[default=check]")
     depends_on("librdkafka", when="+store-avro-kafka")
     depends_on("py-avro", when="+store-avro-kafka")
     variant("synthetic", default=True, description="enable synthetic module")
@@ -114,9 +118,8 @@ class Ldms(AutotoolsPackage):
     variant("fptrans", default=False, description="enable fptrans module")
     variant("tsampler", default=True, description="enable tsampler module")
     variant("cray_power_sampler", default=True, description="enable cray_power_sampler module")
-    with when ("+cray_power_sampler"):
+    with when("+cray_power_sampler"):
         conflicts("^tsampler", msg="Cray Power Sampler will not build with --disable-tsampler")
-    
     variant("loadavg", default=True, description="enable loadavg module")
     variant("vmstat", default=True, description="enable vmstat module")
     variant("procdiskstats", default=True, description="enable procdiskstats module")
