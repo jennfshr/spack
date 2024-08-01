@@ -54,6 +54,7 @@ class Sosdb(AutotoolsPackage, GNUMirrorPackage):
     depends_on("gettext@0.19.8.1")
 
     executables = ["^dsosd$", "^dsosql$", "^sos-db$", "^sos-schema$", "^sos_cmd$", "^ods_dump$"]
+    parallel = False
 
     def configure_args(self):
         spec = self.spec
@@ -99,6 +100,14 @@ class Sosdb(AutotoolsPackage, GNUMirrorPackage):
         # Python3 support
         if "+python" in spec:
             args.append("--enable-python")
+            args.append("--with-python_prefix=%s" % spec["python"].prefix)
+            args.append("--with-python-sys-prefix=%s" % spec["python"].prefix)
+            site_pkgs = os.path.join(spec["python"].prefix, "lib", "python%s" % spec["python"].version.up_to(2), "site_packages")
+            args.append("--with-python_exec_prefix=%s" % site_pkgs)
+            python = self.spec["python"].command
+            args.append("PYTHON=%s" % python)
+            args.append("PYTHON_PREFIX=%s" % spec["python"].prefix)
+#            args.append("PYTHON_EXEC_PREFIX=%s" % site_pkgs)
         else:
             args.append("--disable-python")
 

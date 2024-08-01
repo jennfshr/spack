@@ -923,6 +923,9 @@ class Ldms(AutotoolsPackage):
             f.write("Cflags: -I${includedir}\n")
             f.write("Libs: -L${libdir} -lldms\n")
 
+    def setup_run_environment(self, env):
+        env.prepend_path("PATH", self.prefix.sbin)
+
     def setup_dependent_build_environment(self, env, dependent_spec):
         env.set("OVIS", self.prefix)
         env.set("OVIS_INC", self.prefix.inc)
