@@ -67,10 +67,12 @@ class Ldms(AutotoolsPackage):
     variant("msr_interlagos", default=False, description="enable msr_interlagos module")
     variant("nola", default=True, description="enable nola module")
     variant("ovis_auth", default=True, description="enable ovis_auth module")
+    depends_on("openssl@1.1.1w", when="+ovis_auth")
     variant("ovis_ctrl", default=True, description="enable ovis_ctrl module")
     variant("ovis_ev_test", default=False, description="enable ovis_ev_test module")
     variant("ovis_event", default=True, description="enable ovis_event module")
     variant("ovis_event_test", default=False, description="enable ovis_event_test module")
+    depends_on("sosdb", when="+sos")
     variant("perf", default=True, description="enable perf module")
     depends_on("pkg-config")
     # variant("rabbitkw", default=False, description="enable rabbitkw module")
@@ -95,8 +97,13 @@ class Ldms(AutotoolsPackage):
     depends_on("py-avro", when="+store-avro-kafka")
     variant("synthetic", default=True, description="enable synthetic module")
     variant("timescale-store", default=False, description="enable timescaledb store plugin")
+    # TODO write a pq package
+    # depends_on("pq", when="+timescale-store")
     variant("tutorial-store", default=False, description="enable tutorial-store module")
-    variant("ugni", default=False, description="enable ugni module")
+    # TODO determine whether UGNI should be deprecated/obsoleted
+    # variant("ugni", default=False, description="enable ugni module")
+    # depends_on("cray-ugni", when="+ugni")
+    # depends_on("cray-rca", when="+ugni")
     variant("yaml", default=True, description="enable yaml module")
     depends_on("libyaml", when="+yaml")
     variant("zap", default=True, description="enable zap module")
@@ -142,6 +149,9 @@ class Ldms(AutotoolsPackage):
     variant("sos", default=False, description="enable sos module")
     variant("darshan", default=False, description="enable darshan module", when="+sos")
     variant("kokkos", default=False, description="enable kokkos module", when="+sos")
+    depends_on("kokkos-tools", when="+kokkos")
+    depends_on("libuuid@1.0.3", when="+kokkos")
+    depends_on("openssl@1.1.1w", when="+kokkos")
     variant("proc-streams", default=False, description="enable proc-streams module", when="+sos")
     variant("jobinfo-sampler", default=True, description="enable jobinfo-sampler module")
     variant("ibm_occ", default=False, description="enable ibm_occ module")
@@ -155,8 +165,10 @@ class Ldms(AutotoolsPackage):
     variant("ipmireader", default=False, description="enable the ipmireader module")
     variant("tutorial-sampler", default=False, description="enable tutorial-sampler module")
     variant("variorum", default=False, description="require components that depend upon libvariorum (and libjansson) [default=check]")
+    variant("jansson", default=False, description="enable jansson support")
     depends_on("variorum", when="+variorum")
     depends_on("jansson", when="+variorum")
+    depends_on("jansson", when="+jansson")
     variant("influx", default=False, description="enable influx module")
     depends_on("curl", when="+influx")
     variant("papi", default=False,
@@ -184,6 +196,7 @@ class Ldms(AutotoolsPackage):
     depends_on("python@3.6:", when="+python")
     depends_on("py-cython@:0.29.36", when="+python")
     variant("ldms-python", default=True, description="enable LDMS python API (deprecated)")
+    depends_on("python", when="+ldms-python")
     variant("libgenders", default=False, description="enable libgenders module: requires C++,boost")
     depends_on("boost", when="+libgenders")
     # gpcdlocal isn't in spack
@@ -479,11 +492,16 @@ class Ldms(AutotoolsPackage):
 
         if "+kokkos" in spec:
             options.append("--enable-kokkos")
+            options.append("--enable-hello_stream")
+            # options.append("--enable-blob_stream")
+            # conflict("~hello_stream", msg="+hello_stream required to support kokkos connector")
+            # conflict("~blob_stream", msg="+blob_stream required to support kokkos connector")
         else:
             options.append("--disable-kokkos")
 
         if "+ldms-python" in spec:
             options.append("--enable-ldms-python")
+            options.append("--with-python=%s" % spec["python"].prefix)
         else:
             options.append("--disable-ldms-python")
 
@@ -568,7 +586,6 @@ class Ldms(AutotoolsPackage):
 
         if "+ovis_auth" in spec:
             options.append("--enable-ovis_auth")
-            depends_on("openssl")
             options.append("--with-openssl=%s" % spec["openssl"].prefix)
         else:
             options.append("--disable-ovis_auth")
@@ -733,13 +750,14 @@ class Ldms(AutotoolsPackage):
         else:
             options.append("--disable-sock")
         # ovis-SOS isn't a supported package in Spack, and the sos package isn't what we want
-        # TODO: write an ovis-sos package in Spack
-        # if "+sosdb" in spec:
-        #    options.append("--enable-sos")
-        #    options.append("--with-sos=%s" % spec["ovis-sos"].prefix)
-        # else:
-        #    options.append("--disable-sos")
-        #    options.append("--without-sos")
+        # TODO: write an sosdb package in Spack
+        if "+sos" in spec:
+            options.append("--enable-sos")
+            options.append("--with-sos")
+            options.append("--with-sos=%s" % spec["sosdb"].prefix)
+        else:
+            options.append("--disable-sos")
+            options.append("--without-sos")
 
         if "+tx2mon" in spec:
             options.append("--enable-tx2mon")
@@ -816,7 +834,6 @@ class Ldms(AutotoolsPackage):
             options.append("--disable-test_sampler")
 
         if "+timescale-store" in spec:
-            depends_on("pq")
             options.append("--with-libpq-prefix=%s" % spec["pq"].prefix)
             options.append("--enable-timescale-store")
         else:
@@ -838,8 +855,6 @@ class Ldms(AutotoolsPackage):
             options.append("--disable-tutorial-store")
 
         if "+ugni" in spec:
-            depends_on("cray-ugni")
-            depends_on("cray-rca")
             options.append("--enable-ugni")
         else:
             options.append("--disable-ugni")
