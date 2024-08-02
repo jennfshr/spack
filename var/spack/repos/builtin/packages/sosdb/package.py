@@ -152,7 +152,7 @@ class Sosdb(AutotoolsPackage, GNUMirrorPackage):
         # gettext req't
         if "+gettext" in spec:
             args.append("CFLAGS=-I%s" % spec["gettext"].prefix.include)
-            #args.append("--with-gettext=%s" % spec["gettext"].prefix)
+            args.append("LDFLAGS=-L%s -lintl" % spec["gettext"].prefix.libs)
         return args
 
 
