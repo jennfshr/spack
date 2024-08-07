@@ -31,30 +31,44 @@ class KokkosTools(CMakePackage):
     variant("testing", default=False, description="Enable Testing")
     variant("trilinos", default=False, description="Use Kokkos from Trilinos")
     variant("vtune", default=False, description="Enable profiling on VTune proprietary counters")
+    # ArborX relies on Kokkos to provide devices, providing one-to-one matching
+    # variants. The only way to disable those devices is to make sure Kokkos
+    # does not provide them.
+    kokkos_backends = {
+        'serial': (True,  "enable Serial backend (default)"),
+        'cuda': (False,  "enable Cuda backend"),
+        'openmp': (False,  "enable OpenMP backend"),
+        'rocm': (False,  "enable HIP backend")
+    }
 
-    variant('serial', default=True, description="enable Serial backend (default)")
-    variant('cuda', default=False, description="enable Cuda backend")
-    variant('openmp', default=False, description="enable OpenMP backend")
-    variant('hip', default=False, description="enable HIP backend")
+    for backend in kokkos_backends:
+        deflt, descr = kokkos_backends[backend]
+        variant(backend.lower(), default=deflt, description=descr)
 
-    depends_on('kokkos+serial', when='~trilinos+serial')
-    depends_on('kokkos+cuda_lambda', when='~trilinos+cuda')
+    # Standalone Kokkos
+    depends_on('kokkos@3.1.00:', when='~trilinos', type=("build", "link", "run"))
+
+    for backend in kokkos_backends:
+        depends_on('kokkos+%s' % backend.lower(), when='~trilinos+%s' %
+                   backend.lower(), type=("build", "link", "run"))
+
+    depends_on('kokkos+cuda_lambda', when='~trilinos+cuda', type=("build", "link", "run"))
     #depends_on('kokkos+cuda', when='~trilinos+cuda')
-    depends_on('kokkos+openmp', when='~trilinos+openmp')
-    depends_on('kokkos+rocm', when='~trilinos+openmp')
+    depends_on('kokkos+openmp', when='~trilinos+openmp', type=("build", "link", "run"))
+    depends_on('kokkos+rocm', when='~trilinos+rocm', type=("build", "link", "run"))
 
     depends_on('cmake@3.16:', type='build')
-    depends_on('kokkos@3.1.00:', when='~trilinos')
-    depends_on('trilinos+kokkos@develop', when='+trilinos')
-    depends_on('trilinos+openmp', when='+trilinos+openmp')
+    depends_on('trilinos+kokkos@develop', when='+trilinos', type=("build", "link", "run"))
+    depends_on('trilinos+openmp', when='+trilinos+openmp', type=("build", "link", "run"))
     conflicts('~serial', when='+trilinos')
     conflicts('+cuda', when='+trilinos')
-    depends_on('intel-oneapi-vtune', when='+vtune')
-    depends_on('caliper', when='+caliper')
-    depends_on("kokkos", when="+testing")
-    depends_on('mpi', when='+mpi')
-    depends_on('papi@6:', when='+papi')
-    depends_on('variorum')
+    depends_on('intel-oneapi-vtune', when='+vtune', type=("build", "link", "run"))
+    depends_on('caliper', when='+caliper', type=("build", "link", "run"))
+    depends_on("kokkos", when="+testing", type=("build", "link", "run"))
+    depends_on("kokkos", when="+examples", type=("build", "link", "run"))
+    depends_on('mpi', when='+mpi', type=("build", "link", "run"))
+    depends_on('papi@6:', when='+papi', type=("build", "link", "run"))
+    depends_on('variorum', type=("build", "link", "run"))
 
     def cmake_args(self):
         spec = self.spec
