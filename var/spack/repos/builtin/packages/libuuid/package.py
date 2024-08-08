@@ -15,7 +15,6 @@ class Libuuid(AutotoolsPackage, SourceforgePackage):
     version(
         "1.0.3",
         sha256="46af3275291091009ad7f1b899de3d0cea0252737550e7919d17237997db5644",
-        deprecated=True,
     )
 
     depends_on("c", type="build")  # generated
