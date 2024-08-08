@@ -21,10 +21,6 @@ class KokkosTools(CMakePackage):
     # Example requires KokkosTools built with monolothic library interface
     conflicts("~single", when="+examples")
     
-    # Kokkos with relevant variants required for nvtx and roctx
-    for connector,variant in ["nvtx", "+cuda"], ["roctx", "+rocm"]:
-        if not (f"^kokkos@4:{variant}"):
-            conflicts(f"+{connector}", msg=f"{connector} requires ^kokkos@4:{variant}")
 
     variant("apex", default=False, description="Enable building Apex library")
     variant("caliper", default=False, description="Enable building Caliper library")
@@ -67,6 +63,12 @@ class KokkosTools(CMakePackage):
 
     def cmake_args(self):
         spec = self.spec
+        # Kokkos with relevant variants required for nvtx and roctx
+        for con,var in ["nvtx", "+cuda"], ["roctx", "+rocm"]:
+#        ns = f"^kokkos@4:{var}"
+            if not spec.satisfies(f"^kokkos{var}"):
+                conflicts(f"+{con}", msg=f"{con} requires ^kokkos{var}")
+
         cmake_args = [
             "-DKokkosTools_ENABLE_PAPI=%s" % ("ON" if "+papi" in spec else "OFF"),
             "-DKokkosTools_ENABLE_MPI=%s" % ("ON" if "+mpi" in spec else "OFF"),
@@ -82,14 +84,7 @@ class KokkosTools(CMakePackage):
         else:
             cmake_args.append("-DKokkosTools_REUSE_KOKKOS_COMPILER=%s" % "OFF")
 
-        if (
-            "+tests" or
-            "+caliper" or
-            "+examples" or
-            "+nvtx" or
-            "+roctx" or
-            "+vtune" in spec
-        ):
+        if "+tests" or "+caliper" or "+examples" or "+nvtx" or "+roctx" or "+vtune" in spec:
             cmake_args.append("-DKokkos_ROOT=%s" % spec["kokkos"].prefix)
 
         if (
