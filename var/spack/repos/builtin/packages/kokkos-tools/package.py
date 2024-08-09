@@ -21,7 +21,6 @@ class KokkosTools(CMakePackage):
     # Example requires KokkosTools built with monolothic library interface
     conflicts("~single", when="+examples")
     
-
     variant("apex", default=False, description="Enable building Apex library")
     variant("caliper", default=False, description="Enable building Caliper library")
     variant("examples", default=False, description="Build examples")
@@ -65,7 +64,6 @@ class KokkosTools(CMakePackage):
         spec = self.spec
         # Kokkos with relevant variants required for nvtx and roctx
         for con,var in ["nvtx", "+cuda"], ["roctx", "+rocm"]:
-#        ns = f"^kokkos@4:{var}"
             if not spec.satisfies(f"^kokkos{var}"):
                 conflicts(f"+{con}", msg=f"{con} requires ^kokkos{var}")
 
@@ -114,12 +112,12 @@ class KokkosTools(CMakePackage):
             try:
                 cmake_args.append("-DCMAKE_CXX_COMPILER=%s" % "{0}/bin/CC".format(spec["cce"].prefix))
             except:
-                print("cce not in spec")
+                print("+nvtx ^kokkos%cce+cuda not in spec")
         elif "+roctx" in spec and "^kokkos+rocm":
             try:
                 cmake_args.append("-DCMAKE_CXX_COMPILER=%s" % spec["hip"].hipcc)
             except:
-                print("hip not in spec")
+                print("+roctx ^kokkos+rocm not in spec")
 
         print("Debugging Cmake Args: %s", cmake_args)
         return cmake_args
