@@ -85,7 +85,10 @@ class KokkosTools(CMakePackage):
             cmake_args.append("-DKokkosTools_REUSE_KOKKOS_COMPILER=%s" % "OFF")
 
         if "+tests" or "+caliper" or "+examples" or "+nvtx" or "+roctx" or "+vtune" in spec:
-            cmake_args.append("-DKokkos_ROOT=%s" % spec["kokkos"].prefix)
+            try:
+                cmake_args.append("-DKokkos_ROOT=%s" % spec["kokkos"].prefix)
+            except:
+                print("Kokkos_ROOT not defined due to kokkos not being in spec")
 
         if (
             spec.satisfies("+nvtx")
@@ -93,17 +96,30 @@ class KokkosTools(CMakePackage):
             and not "^kokkos%clang+cuda" in spec
             or "^kokkos%cce+cuda"
         ):
-            cmake_args.append("-DCMAKE_CXX_COMPILER=%s" %
-                               spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+            try:
+                cmake_args.append("-DCMAKE_CXX_COMPILER=%s" %
+                                   spec["kokkos-nvcc-wrapper"].kokkos_cxx)
+            except:
+                print("kokkos-nvcc-wrapper not in spec")
         elif (
             "+nvtx" in spec
             and "^kokkos+cuda"
             and "^kokkos%clang+cuda"
         ):
-            cmake_args.append("-DCMAKE_CXX_COMPILER=%s" % "{0}/bin/clang++".format(spec["clang"].prefix))
+            try:
+                cmake_args.append("-DCMAKE_CXX_COMPILER=%s" % "{0}/bin/clang++".format(spec["clang"].prefix))
+            except:
+                print("clang not in spec")
         elif "+nvtx" in spec and "^kokkos%cce+cuda":
-            cmake_args.append("-DCMAKE_CXX_COMPILER=%s" % "{0}/bin/CC".format(spec["cce"].prefix))
+            try:
+                cmake_args.append("-DCMAKE_CXX_COMPILER=%s" % "{0}/bin/CC".format(spec["cce"].prefix))
+            except:
+                print("cce not in spec")
         elif "+roctx" in spec and "^kokkos+rocm":
-            cmake_args.append("-DCMAKE_CXX_COMPILER=%s" % spec["hip"].hipcc)
+            try:
+                cmake_args.append("-DCMAKE_CXX_COMPILER=%s" % spec["hip"].hipcc)
+            except:
+                print("hip not in spec")
+
         print("Debugging Cmake Args: %s", cmake_args)
         return cmake_args
