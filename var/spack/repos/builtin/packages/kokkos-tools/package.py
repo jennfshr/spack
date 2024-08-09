@@ -121,5 +121,5 @@ class KokkosTools(CMakePackage):
             except:
                 print("+roctx ^kokkos+rocm not in spec")
 
-        print("Debugging Cmake Args: %s", cmake_args)
+        print("Debugging Cmake Args: %s" % cmake_args)
         return cmake_args
