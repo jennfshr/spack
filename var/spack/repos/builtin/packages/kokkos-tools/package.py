@@ -43,6 +43,7 @@ class KokkosTools(CMakePackage):
     depends_on("kokkos@4:", when="+examples", type=("build", "link", "run"))
     depends_on("kokkos@4:+cuda", when="+nvtx", type=("build", "link", "run"))
     depends_on("kokkos@4:+rocm", when="+roctx", type=("build", "link", "run"))
+    depends_on("roctracer-dev +rocm", when="+roctx", type=("build", "link", "run"))
     depends_on("mpi", when="+mpi", type=("build", "link", "run"))
     depends_on("papi@6:", when="+papi", type=("build", "link", "run"))
     depends_on("variorum", when="+variorum", type=("build", "link", "run"))
@@ -55,6 +56,7 @@ class KokkosTools(CMakePackage):
         # roctx requires $Kokkos_ENABLE_HIP to be set
         if "+roctx" in self.spec:
             env.set("Kokkos_ENABLE_HIP", "1")
+            env.set("ROCM_PATH", self.spec["roctracer-dev"].prefix)
 
         # vtune requires VTUNE_HOME to be set
         if "+vtune" in self.spec:

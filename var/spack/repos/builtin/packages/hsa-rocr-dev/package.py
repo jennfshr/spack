@@ -132,6 +132,7 @@ class HsaRocrDev(CMakePackage):
             bitcode_dir = spec["llvm-amdgpu"].prefix.amdgcn.bitcode
 
         args.append(self.define("BITCODE_DIR", bitcode_dir))
+        args.append("-DROCM_PATH=%s" % spec["rocm-core"].prefix)
 
         if self.spec.satisfies("@5.6:"):
             args.append("-DCMAKE_INSTALL_LIBDIR=lib")
