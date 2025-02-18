@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -38,7 +37,7 @@ class Biobambam2(AutotoolsPackage):
     def cache_test_sources(self):
         """Copy the test source files after the package is installed to an
         install test subdirectory for use during `spack test run`."""
-        self.cache_extra_test_sources(self.test_src_dir)
+        cache_extra_test_sources(self, self.test_src_dir)
 
         # Fix test scripts to run installed binaries
         scripts_dir = join_path(install_test_root(self), self.test_src_dir)

@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -9,7 +8,7 @@ from spack.package import *
 class Cppcheck(CMakePackage):
     """A tool for static C/C++ code analysis."""
 
-    homepage = "http://cppcheck.sourceforge.net/"
+    homepage = "https://cppcheck.sourceforge.net/"
     url = "https://downloads.sourceforge.net/project/cppcheck/cppcheck/1.78/cppcheck-1.78.tar.bz2"
 
     maintainers("white238")

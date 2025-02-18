@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -29,7 +28,8 @@ class Mgard(CMakePackage, CudaPackage):
     version("2021-11-12", commit="3c05c80a45a51bb6cc5fb5fffe7b1b16787d3366")
     version("2020-10-01", commit="b67a0ac963587f190e106cc3c0b30773a9455f7a")
 
-    depends_on("cxx", type="build")  # generated
+    depends_on("c", type="build")
+    depends_on("cxx", type="build")
 
     variant(
         "serial",
@@ -74,10 +74,15 @@ class Mgard(CMakePackage, CudaPackage):
 
     def flag_handler(self, name, flags):
         if name == "cxxflags":
-            if self.spec.satisfies("@2020-10-01 %oneapi@2023:"):
-                flags.append("-Wno-error=c++11-narrowing")
-            if self.spec.satisfies("@2020-10-01 %apple-clang@15:"):
-                flags.append("-Wno-error=c++11-narrowing")
+            for a_spec in [
+                "@2020-10-01 %oneapi@2023:",
+                "@2020-10-01 %apple-clang@15:",
+                "@2020-10-01 %aocc@3:",
+                "@2020-10-01 %cce@15:",
+                "@2020-10-01 %rocmcc@4:",
+            ]:
+                if self.spec.satisfies(a_spec):
+                    flags.append("-Wno-error=c++11-narrowing")
         return (flags, None, None)
 
     def cmake_args(self):

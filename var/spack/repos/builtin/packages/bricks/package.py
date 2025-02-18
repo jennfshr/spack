@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -76,7 +75,7 @@ class Bricks(CMakePackage):
             join_path("examples", "external", "main.cpp"),
             join_path("examples", "external", "7pt.py"),
         ]
-        self.cache_extra_test_sources(srcs)
+        cache_extra_test_sources(self, srcs)
 
     def test_bricklib_example(self):
         """build and run pre-built example"""

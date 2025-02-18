@@ -1,5 +1,4 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
@@ -14,7 +13,7 @@ class Qwt(QMakePackage):
     ranges of type double.
     """
 
-    homepage = "http://qwt.sourceforge.net/"
+    homepage = "https://qwt.sourceforge.net/"
     url = "https://sourceforge.net/projects/qwt/files/qwt/6.1.3/qwt-6.1.3.tar.bz2"
 
     license("custom")

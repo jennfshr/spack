@@ -1,7 +1,8 @@
-# Copyright 2013-2024 Lawrence Livermore National Security, LLC and other
-# Spack Project Developers. See the top-level COPYRIGHT file for details.
+# Copyright Spack Project Developers. See COPYRIGHT file for details.
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
+
+import os
 
 from spack.package import *
 
@@ -14,11 +15,12 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
     url = "https://github.com/cp2k/dbcsr/releases/download/v2.2.0/dbcsr-2.2.0.tar.gz"
     list_url = "https://github.com/cp2k/dbcsr/releases"
 
-    maintainers("dev-zero", "mtaillefumier")
+    maintainers("dev-zero", "mtaillefumier", "RMeli")
 
     license("GPL-2.0-or-later")
 
     version("develop", branch="develop")
+    version("2.8.0", sha256="d55e4f052f28d1ed0faeaa07557241439243287a184d1fd27f875c8b9ca6bd96")
     version("2.7.0", sha256="25c367b49fb108c5230bcfb127f05fc16deff2bb467f437023dfa6045aff66f6")
     version("2.6.0", sha256="c67b02ff9abc7c1f529af446a9f01f3ef9e5b0574f220259128da8d5ca7e9dc6")
     version("2.5.0", sha256="91fda9b2502e5d0a2a6cdd5a73ef096253cc7e75bd01ba5189a4726ad86aef08")
@@ -97,8 +99,8 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
 
     conflicts("+cuda", when="cuda_arch=none", msg=cuda_msg)
 
-    dbcsr_amdgpu_targets = {"gfx906", "gfx910", "gfx90a", "gfx90a:xnack-", "gfx90a:xnack+"}
-    amd_msg = "DBCSR only supports amdgpu_target {0}".format(dbcsr_amdgpu_targets)
+    dbcsr_amdgpu_targets = ("gfx906", "gfx910", "gfx90a", "gfx90a:xnack-", "gfx90a:xnack+")
+    amd_msg = f"DBCSR supports these AMD gpu targets:  {', '.join(dbcsr_amdgpu_targets)}"
 
     for arch in ROCmPackage.amdgpu_targets:
         if arch not in dbcsr_amdgpu_targets:
@@ -126,6 +128,18 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
     generator("ninja")
     depends_on("ninja@1.10:", type="build")
 
+    @when("+rocm")
+    def patch(self):
+        for directory, subdirectory, files in os.walk(os.getcwd()):
+            for i in files:
+                file_path = os.path.join(directory, i)
+                filter_file("USE ISO_C_BINDING", "USE,INTRINSIC :: ISO_C_BINDING", file_path)
+                filter_file("USE ISO_FORTRAN_ENV", "USE,INTRINSIC :: ISO_FORTRAN_ENV", file_path)
+                filter_file("USE omp_lib", "USE,INTRINSIC :: omp_lib", file_path)
+                filter_file("USE OMP_LIB", "USE,INTRINSIC :: OMP_LIB", file_path)
+                filter_file("USE iso_c_binding", "USE,INTRINSIC :: iso_c_binding", file_path)
+                filter_file("USE iso_fortran_env", "USE,INTRINSIC :: iso_fortran_env", file_path)
+
     def cmake_args(self):
         spec = self.spec
 
@@ -147,10 +161,11 @@ class Dbcsr(CMakePackage, CudaPackage, ROCmPackage):
             "-DLAPACK_LIBRARIES=%s" % (spec["lapack"].libs.joined(";")),
             self.define_from_variant("BUILD_SHARED_LIBS", "shared"),
             self.define_from_variant("WITH_EXAMPLES", "examples"),
+            self.define_from_variant("WITH_G2G", "g2g"),
         ]
 
         # Switch necessary as a result of a bug.
-        if "@2.1:2.2" in spec:
+        if spec.satisfies("@2.1:2.2"):
             args += ["-DBUILD_TESTING=ON"]
 
         if self.spec.satisfies("+cuda"):
